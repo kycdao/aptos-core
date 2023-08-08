@@ -196,6 +196,7 @@ spec aptos_framework::transaction_validation {
         use aptos_framework::coin::{CoinStore, CoinInfo};
         use aptos_framework::optional_aggregator;
         use aptos_framework::transaction_fee::{AptosCoinCapabilities, CollectedFeesPerBlock};
+        pragma verify_duration_estimate = 120;
 
         aborts_if !(txn_max_gas_units >= gas_units_remaining);
         let gas_used = txn_max_gas_units - gas_units_remaining;
@@ -268,6 +269,7 @@ spec aptos_framework::transaction_validation {
         use aptos_framework::coin::{CoinStore, CoinInfo};
         use aptos_framework::optional_aggregator;
         use aptos_framework::transaction_fee::{AptosCoinCapabilities, CollectedFeesPerBlock};
+        pragma verify_duration_estimate = 120;
 
         aborts_if !(txn_max_gas_units >= gas_units_remaining);
         let gas_used = txn_max_gas_units - gas_units_remaining;

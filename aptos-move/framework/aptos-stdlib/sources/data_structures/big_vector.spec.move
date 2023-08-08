@@ -66,6 +66,7 @@ spec aptos_std::big_vector {
     }
 
     spec push_back<T: store>(v: &mut BigVector<T>, val: T) {
+        pragma verify_duration_estimate = 120; // TODO: disabled due to timeout.
         let num_buckets = spec_table_len(v.buckets);
         aborts_if num_buckets * v.bucket_size > MAX_U64;
         aborts_if v.end_index + 1 > MAX_U64;

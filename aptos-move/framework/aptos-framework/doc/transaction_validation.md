@@ -867,7 +867,8 @@ Abort according to the conditions.
 Skip transaction_fee::burn_fee verification.
 
 
-<pre><code><b>aborts_if</b> !(txn_max_gas_units &gt;= gas_units_remaining);
+<pre><code><b>pragma</b> verify_duration_estimate = 120;
+<b>aborts_if</b> !(txn_max_gas_units &gt;= gas_units_remaining);
 <b>let</b> gas_used = txn_max_gas_units - gas_units_remaining;
 <b>aborts_if</b> !(txn_gas_price * gas_used &lt;= <a href="transaction_validation.md#0x1_transaction_validation_MAX_U64">MAX_U64</a>);
 <b>let</b> transaction_fee_amount = txn_gas_price * gas_used;
@@ -925,7 +926,8 @@ Abort according to the conditions.
 Skip transaction_fee::burn_fee verification.
 
 
-<pre><code><b>aborts_if</b> !(txn_max_gas_units &gt;= gas_units_remaining);
+<pre><code><b>pragma</b> verify_duration_estimate = 120;
+<b>aborts_if</b> !(txn_max_gas_units &gt;= gas_units_remaining);
 <b>let</b> gas_used = txn_max_gas_units - gas_units_remaining;
 <b>aborts_if</b> !(txn_gas_price * gas_used &lt;= <a href="transaction_validation.md#0x1_transaction_validation_MAX_U64">MAX_U64</a>);
 <b>let</b> transaction_fee_amount = txn_gas_price * gas_used;

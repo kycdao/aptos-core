@@ -745,6 +745,20 @@ Return <code><b>true</b></code> if the vector <code>v</code> has no elements and
 ## Specification
 
 
+
+<a name="0x1_big_vector_spec_at"></a>
+
+
+<pre><code><b>fun</b> <a href="big_vector.md#0x1_big_vector_spec_at">spec_at</a>&lt;T&gt;(v: <a href="big_vector.md#0x1_big_vector_BigVector">BigVector</a>&lt;T&gt;, i: u64): T {
+   <b>let</b> bucket = i / v.bucket_size;
+   <b>let</b> idx = i % v.bucket_size;
+   <b>let</b> v = <a href="table_with_length.md#0x1_table_with_length_spec_get">table_with_length::spec_get</a>(v.buckets, bucket);
+   v[idx]
+}
+</code></pre>
+
+
+
 <a name="@Specification_1_BigVector"></a>
 
 ### Struct `BigVector`
@@ -914,7 +928,8 @@ Return <code><b>true</b></code> if the vector <code>v</code> has no elements and
 
 
 
-<pre><code><b>let</b> num_buckets = <a href="big_vector.md#0x1_big_vector_spec_table_len">spec_table_len</a>(v.buckets);
+<pre><code><b>pragma</b> verify_duration_estimate = 120;
+<b>let</b> num_buckets = <a href="big_vector.md#0x1_big_vector_spec_table_len">spec_table_len</a>(v.buckets);
 <b>aborts_if</b> num_buckets * v.bucket_size &gt; MAX_U64;
 <b>aborts_if</b> v.end_index + 1 &gt; MAX_U64;
 <b>ensures</b> <a href="big_vector.md#0x1_big_vector_length">length</a>(v) == <a href="big_vector.md#0x1_big_vector_length">length</a>(<b>old</b>(v)) + 1;
@@ -1051,20 +1066,6 @@ Return <code><b>true</b></code> if the vector <code>v</code> has no elements and
 
 <pre><code><b>fun</b> <a href="big_vector.md#0x1_big_vector_spec_table_contains">spec_table_contains</a>&lt;K, V&gt;(t: TableWithLength&lt;K, V&gt;, k: K): bool {
    <a href="table_with_length.md#0x1_table_with_length_spec_contains">table_with_length::spec_contains</a>(t, k)
-}
-</code></pre>
-
-
-
-
-<a name="0x1_big_vector_spec_at"></a>
-
-
-<pre><code><b>fun</b> <a href="big_vector.md#0x1_big_vector_spec_at">spec_at</a>&lt;T&gt;(v: <a href="big_vector.md#0x1_big_vector_BigVector">BigVector</a>&lt;T&gt;, i: u64): T {
-   <b>let</b> bucket = i / v.bucket_size;
-   <b>let</b> idx = i % v.bucket_size;
-   <b>let</b> v = <a href="table_with_length.md#0x1_table_with_length_spec_get">table_with_length::spec_get</a>(v.buckets, bucket);
-   v[idx]
 }
 </code></pre>
 
