@@ -69,6 +69,7 @@ members = [
     "crates/aptos-network-checker",
     "crates/aptos-node-identity",
     "crates/aptos-openapi",
+    "crates/aptos-profiler",
     "crates/aptos-proptest-helpers",
     "crates/aptos-push-metrics",
     "crates/aptos-rate-limiter",
