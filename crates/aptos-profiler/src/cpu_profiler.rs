@@ -37,14 +37,15 @@ impl Profiler for CpuProfiler {
     }
     // End profiling
     fn end_profiling(&self) -> Result<()> {
-        unimplemented!()
+        
     }
-
+        
+    // Expose the results as TXT
     fn expose_text_results(&self) -> Result<String> {
-        unimplemented!()
+        Ok()
     }
 
-    // Expose the results as a JSON string for visualization
+    // Expose the results as SVG
     fn expose_svg_results(&self) -> Result<String> {
         let content = convert_svg_to_string(self.cpu_profiling_data_file.as_path());
         return Ok(content.unwrap());

@@ -39,7 +39,7 @@ struct CpuProfilerConfig {
 impl CpuProfilerConfig {
     pub fn new_with_defaults() -> Option<Self> {
         Some(Self {
-            duration: 100,
+            duration: 30,
             frequency: 100,
             cpu_profiling_result: PathBuf::from("./profiling_results/cpu_flamegraph.svg"),
         })
