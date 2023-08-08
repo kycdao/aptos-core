@@ -3,8 +3,8 @@
 
 use anyhow::Result;
 use crate::{CpuProfilerConfig, Profiler};
-use crate::utils::convert_svg_to_string;
-use std::{fs, thread, time, path::PathBuf};
+use crate::utils::{convert_svg_to_string, create_file_with_parents};
+use std::{thread, time, path::PathBuf};
 
 pub struct CpuProfiler {
     duration: u64,
@@ -28,7 +28,8 @@ impl Profiler for CpuProfiler {
         thread::sleep(time::Duration::from_secs(self.duration));
 
         if let Ok(report) = guard.report().build() {
-            let file = fs::File::create(self.cpu_profiling_data_file.as_path()).unwrap();
+            let file = create_file_with_parents(self.cpu_profiling_data_file.as_path())?;
+
             report.flamegraph(file).unwrap();
         };
         

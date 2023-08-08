@@ -17,6 +17,5 @@ result = execute_command(command)
 command = "jeprof --show_bytes ./target/release/aptos-node ./*.heap --text  > " + text_location
 result = execute_command(command)
 
-
 command = "rm ./*.heap"
 result = execute_command(command)
