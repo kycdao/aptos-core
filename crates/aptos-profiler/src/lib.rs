@@ -31,34 +31,34 @@ impl ProfilerConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CpuProfilerConfig {
-    duration: u64,
+    duration_secs: u64,
     frequency: i32,
-    cpu_profiling_result: PathBuf,
+    svg_result_path: PathBuf,
 }
 
 impl CpuProfilerConfig {
     pub fn new_with_defaults() -> Option<Self> {
         Some(Self {
-            duration: 30,
+            duration_secs: 30,
             frequency: 100,
-            cpu_profiling_result: PathBuf::from("./profiling_results/cpu_flamegraph.svg"),
+            svg_result_path: PathBuf::from("./profiling_results/cpu_flamegraph.svg"),
         })
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct MemProfilerConfig {
-    duration: u64,
-    mem_profiling_result_txt: PathBuf,
-    mem_profiling_result_svg: PathBuf,
+    duration_secs: u64,
+    txt_result_path: PathBuf,
+    svg_result_path: PathBuf,
 } 
 
 impl MemProfilerConfig {
     pub fn new_with_defaults() -> Option<Self> {
         Some(Self {
-            duration: 60,
-            mem_profiling_result_txt: PathBuf::from("./profiling_results/heap.txt"),
-            mem_profiling_result_svg: PathBuf::from("./profiling_results/heap.svg"),
+            duration_secs: 60,
+            txt_result_path: PathBuf::from("./profiling_results/heap.txt"),
+            svg_result_path: PathBuf::from("./profiling_results/heap.svg"),
 
         })
     }
