@@ -12,7 +12,7 @@ use crate::{
     utils::{
         check_balance, create_and_fund_account, emit_step_metrics, get_client, get_faucet_client,
         NetworkName, TestFailure, TestName,
-    },
+    }, token_client::{build_and_submit_transaction, TransactionOptions},
 };
 use anyhow::{anyhow, Result};
 use aptos_api_types::{HexEncodedBytes, U64};
@@ -22,7 +22,6 @@ use aptos_logger::info;
 use aptos_rest_client::Client;
 use aptos_sdk::{
     bcs,
-    token_client::{build_and_submit_transaction, TransactionOptions},
     types::LocalAccount,
 };
 use aptos_types::{

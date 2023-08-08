@@ -9,21 +9,20 @@ use crate::{
         FAIL_WRONG_TOKEN_DATA,
     },
     persistent_check, time_fn,
+    token_client::{
+        CollectionData, CollectionMutabilityConfig, RoyaltyOptions, TokenClient, TokenData,
+        TokenMutabilityConfig,
+    },
     utils::{
         check_balance, create_and_fund_account, emit_step_metrics, get_client, get_faucet_client,
         NetworkName, TestFailure, TestName,
     },
 };
+use aptos_sdk::types::LocalAccount;
+
 use aptos_api_types::U64;
 use aptos_logger::info;
 use aptos_rest_client::Client;
-use aptos_sdk::{
-    token_client::{
-        CollectionData, CollectionMutabilityConfig, RoyaltyOptions, TokenClient, TokenData,
-        TokenMutabilityConfig,
-    },
-    types::LocalAccount,
-};
 use aptos_types::account_address::AccountAddress;
 
 static COLLECTION_NAME: &str = "test collection";

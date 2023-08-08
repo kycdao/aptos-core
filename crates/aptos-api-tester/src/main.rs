@@ -9,6 +9,7 @@ mod fail_message;
 mod persistent_check;
 mod tests;
 mod utils;
+mod token_client;
 #[macro_use]
 mod macros;
 
