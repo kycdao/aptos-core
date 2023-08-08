@@ -40,7 +40,7 @@ use tracing::{error, info};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ParserConfig {
-    pub google_application_credentials: String,
+    pub google_application_credentials: Option<String>,
     pub bucket: String,
     pub subscription_name: String,
     pub database_url: String,
@@ -49,6 +49,7 @@ pub struct ParserConfig {
     pub num_parsers: usize,
     pub max_file_size_bytes: u32,
     pub image_quality: u8, // Quality up to 100
+    pub ack_parsed_uris: Option<bool>,
 }
 
 /// Subscribes to PubSub and sends URIs to Channel
@@ -66,7 +67,7 @@ async fn consume_pubsub_entries_to_channel_loop(
         let ack = msg.ack_id();
         let entry_string = String::from_utf8(msg.message.clone().data)?;
         let parts: Vec<&str> = entry_string.split(',').collect();
-        let entry = Worker::new(
+        let worker = Worker::new(
             parser_config.clone(),
             pool.get()?,
             parts[0].to_string(),
@@ -75,12 +76,16 @@ async fn consume_pubsub_entries_to_channel_loop(
             NaiveDateTime::parse_from_str(parts[3], "%Y-%m-%d %H:%M:%S %Z").unwrap_or(
                 NaiveDateTime::parse_from_str(parts[3], "%Y-%m-%d %H:%M:%S%.f %Z")?,
             ),
-            parts[4].parse::<bool>().unwrap_or(false),
+            parts[4].parse::<i32>()?,
+            parts[5].parse::<bool>().unwrap_or(false),
         );
 
         // Send worker to channel
-        sender.send((entry, ack.to_string())).unwrap_or_else(|e| {
-            error!("Failed to send entry to channel: {:?}", e);
+        sender.send((worker, ack.to_string())).unwrap_or_else(|e| {
+            error!(
+                error = ?e,
+                "[NFT Metadata Crawler] Failed to send PubSub entry to channel"
+            );
         });
     }
 
@@ -92,16 +97,26 @@ async fn spawn_parser(
     semaphore: Arc<Semaphore>,
     receiver: Arc<Mutex<Receiver<(Worker, String)>>>,
     subscription: Subscription,
+    release: bool,
 ) -> anyhow::Result<()> {
     loop {
         let _ = semaphore.acquire().await?;
 
         // Pulls worker from Channel
-        let (mut parser, ack) = receiver.lock().await.recv()?;
-        parser.parse().await?;
+        let (mut worker, ack) = receiver.lock().await.recv()?;
+        worker.parse().await?;
 
-        // Sends ack to PubSub
-        subscription.ack(vec![ack]).await?;
+        // Sends ack to PubSub only if running on release mode
+        if release {
+            info!(
+                token_data_id = worker.token_data_id,
+                token_uri = worker.token_uri,
+                last_transaction_version = worker.last_transaction_version,
+                force = worker.force,
+                "[NFT Metadata Crawler] Acking message"
+            );
+            subscription.ack(vec![ack]).await?;
+        }
 
         sleep(Duration::from_millis(500)).await;
     }
@@ -111,6 +126,11 @@ async fn spawn_parser(
 impl RunnableConfig for ParserConfig {
     /// Main driver function that establishes a connection to Pubsub and parses the Pubsub entries in parallel
     async fn run(&self) -> anyhow::Result<()> {
+        info!(
+            "[NFT Metadata Crawler] Starting parser with config: {:?}",
+            self
+        );
+
         info!("[NFT Metadata Crawler] Connecting to database");
         let pool = establish_connection_pool(self.database_url.clone());
         info!("[NFT Metadata Crawler] Database connection successful");
@@ -119,10 +139,12 @@ impl RunnableConfig for ParserConfig {
         run_migrations(&pool);
         info!("[NFT Metadata Crawler] Finished migrations");
 
-        std::env::set_var(
-            "GOOGLE_APPLICATION_CREDENTIALS",
-            self.google_application_credentials.clone(),
-        );
+        if let Some(google_application_credentials) = self.google_application_credentials.clone() {
+            std::env::set_var(
+                "GOOGLE_APPLICATION_CREDENTIALS",
+                google_application_credentials,
+            );
+        }
 
         // Establish gRPC client
         let config = ClientConfig::default().with_auth().await?;
@@ -149,6 +171,7 @@ impl RunnableConfig for ParserConfig {
                 Arc::clone(&semaphore),
                 Arc::clone(&receiver),
                 subscription.clone(),
+                self.ack_parsed_uris.unwrap_or(false),
             ));
 
             workers.push(worker);
@@ -183,6 +206,7 @@ pub struct Worker {
     token_uri: String,
     last_transaction_version: i32,
     last_transaction_timestamp: chrono::NaiveDateTime,
+    chain_id: i32, // Add checks with DB in future PR
     force: bool,
 }
 
@@ -194,6 +218,7 @@ impl Worker {
         token_uri: String,
         last_transaction_version: i32,
         last_transaction_timestamp: chrono::NaiveDateTime,
+        chain_id: i32,
         force: bool,
     ) -> Self {
         Self {
@@ -204,6 +229,7 @@ impl Worker {
             token_uri,
             last_transaction_version,
             last_transaction_timestamp,
+            chain_id,
             force,
         }
     }
@@ -212,7 +238,7 @@ impl Worker {
     pub async fn parse(&mut self) -> anyhow::Result<()> {
         info!(
             last_transaction_version = self.last_transaction_version,
-            "[NFT Metadata Crawler] Starting parser"
+            "[NFT Metadata Crawler] Starting worker"
         );
 
         // Deduplicate token_uri
