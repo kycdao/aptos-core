@@ -3658,6 +3658,7 @@ dependencies = [
  "move-bytecode-utils",
  "move-bytecode-verifier",
  "move-core-types",
+ "move-stackless-bytecode",
  "move-unit-test",
  "move-vm-runtime",
  "move-vm-test-utils",
