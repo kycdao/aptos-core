@@ -6,7 +6,6 @@ use crate::{MemProfilerConfig, Profiler, utils::convert_svg_to_string};
 use std::{thread, path::PathBuf, time::Duration, process::Command};
 
 pub struct MemProfiler {
-    duration_secs: u64,
     txt_result_path: PathBuf,
     svg_result_path: PathBuf,
 }
@@ -14,7 +13,6 @@ pub struct MemProfiler {
 impl MemProfiler {
     pub(crate) fn new(config: &MemProfilerConfig) -> Self {
         Self {
-            duration_secs: config.duration_secs,
             txt_result_path: config.txt_result_path.clone(),
             svg_result_path: config.svg_result_path.clone(),
         }
@@ -22,8 +20,8 @@ impl MemProfiler {
 }
 
 impl Profiler for MemProfiler {
-    /// Start memory profiling
-    fn start_profiling(&self) -> Result<()> {
+    
+    fn profile_for(&self, duration_secs: u64) -> Result<()> {
         let mut prof_active: bool = true;
 
         let result = unsafe {
@@ -40,7 +38,7 @@ impl Profiler for MemProfiler {
             return Err(anyhow!("Failed to activate jemalloc profiling"));
         }
 
-        thread::sleep(Duration::from_secs(self.duration_secs));
+        thread::sleep(Duration::from_secs(duration_secs));
     
         let mut prof_active: bool = false;
         let result = unsafe {
@@ -68,7 +66,28 @@ impl Profiler for MemProfiler {
         Ok(())
     }
 
-    /// End profiling before given duration
+    /// Enable memory profiling until it is disabled
+    fn start_profiling(&self) -> Result<()> {
+        let mut prof_active: bool = true;
+
+        let result = unsafe {
+            jemalloc_sys::mallctl(
+                b"prof.active\0".as_ptr() as *const _,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                &mut prof_active as *mut _ as *mut _,
+                std::mem::size_of::<bool>(),
+            )
+        };
+    
+        if result != 0 {
+            return Err(anyhow!("Failed to activate jemalloc profiling"));
+        }
+
+        Ok(())
+    }
+
+    /// Disable profiling and run jeprof to obtain results
     fn end_profiling(&self) -> Result<()> {
         let mut prof_active: bool = false;
         let result = unsafe {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::{
-    path::{PathBuf},
+    path::PathBuf,
 };
 use serde::{Deserialize, Serialize};
 use anyhow::Result;
@@ -11,7 +11,6 @@ use crate::memory_profiler::MemProfiler;
 
 mod cpu_profiler;
 mod memory_profiler;
-
 mod utils;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,6 +20,7 @@ pub struct ProfilerConfig {
 }
 
 impl ProfilerConfig {
+    
     pub fn new_with_defaults() -> Self {
         Self {
             cpu_profiler_config: CpuProfilerConfig::new_with_defaults(),
@@ -31,7 +31,6 @@ impl ProfilerConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CpuProfilerConfig {
-    duration_secs: u64,
     frequency: i32,
     svg_result_path: PathBuf,
 }
@@ -39,7 +38,6 @@ struct CpuProfilerConfig {
 impl CpuProfilerConfig {
     pub fn new_with_defaults() -> Option<Self> {
         Some(Self {
-            duration_secs: 30,
             frequency: 100,
             svg_result_path: PathBuf::from("./profiling_results/cpu_flamegraph.svg"),
         })
@@ -48,7 +46,6 @@ impl CpuProfilerConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct MemProfilerConfig {
-    duration_secs: u64,
     txt_result_path: PathBuf,
     svg_result_path: PathBuf,
 } 
@@ -56,7 +53,6 @@ struct MemProfilerConfig {
 impl MemProfilerConfig {
     pub fn new_with_defaults() -> Option<Self> {
         Some(Self {
-            duration_secs: 60,
             txt_result_path: PathBuf::from("./profiling_results/heap.txt"),
             svg_result_path: PathBuf::from("./profiling_results/heap.svg"),
 
@@ -66,6 +62,9 @@ impl MemProfilerConfig {
 
 /// This defines the interface for caller to start profiling
 pub trait Profiler {
+
+    // Perform profiling for duration_secs
+    fn profile_for(&self, duration_secs: u64) -> Result<()>;
     // Start profiling
     fn start_profiling(&self) -> Result<()>;
     // End profiling

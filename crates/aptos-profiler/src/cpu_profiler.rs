@@ -7,7 +7,6 @@ use crate::utils::{convert_svg_to_string, create_file_with_parents};
 use std::{thread, time, path::PathBuf};
 
 pub struct CpuProfiler {
-    duration_secs: u64,
     frequency: i32,
     svg_result_path: PathBuf,
 }
@@ -15,7 +14,6 @@ pub struct CpuProfiler {
 impl CpuProfiler {
     pub(crate) fn new(config: &CpuProfilerConfig) -> Self {
         Self {
-            duration_secs: config.duration_secs,
             frequency: config.frequency,
             svg_result_path: config.svg_result_path.clone(),
         }
@@ -23,22 +21,33 @@ impl CpuProfiler {
 }
 
 impl Profiler for CpuProfiler {
-    /// Start CPU profiling
-    fn start_profiling(&self) -> Result<()> {
+
+    /// Perform CPU profiling for the given duration
+    fn profile_for(&self, duration_secs: u64) -> Result<()> {
         let guard = pprof::ProfilerGuard::new(self.frequency).unwrap();
-        thread::sleep(time::Duration::from_secs(self.duration_secs));
+        thread::sleep(time::Duration::from_secs(duration_secs));
 
         if let Ok(report) = guard.report().build() {
             let file = create_file_with_parents(self.svg_result_path.as_path())?;
-
-            report.flamegraph(file);
+            let _result = report.flamegraph(file);
         };
         
         Ok(())
     }
 
-    /// End profiling before given duration
+    /// Start profiling until it is stopped
+    fn start_profiling(&self) -> Result<()> {
+        let _guard = pprof::ProfilerGuard::new(self.frequency).unwrap();
+        let duration = u64::MAX;
+        thread::sleep(time::Duration::from_secs(duration));
+        
+        Ok(())
+    }
+
+    /// End profiling
     fn end_profiling(&self) -> Result<()> {
+        //TODO: pprof-rs crate may not have a direct way of stopping the profiling from another function. 
+        //Potential approach: return guard object to original scope and pass it here to stop and report results
         todo!();
     }
         
