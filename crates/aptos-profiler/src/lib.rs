@@ -20,7 +20,6 @@ pub struct ProfilerConfig {
 }
 
 impl ProfilerConfig {
-    
     pub fn new_with_defaults() -> Self {
         Self {
             cpu_profiler_config: CpuProfilerConfig::new_with_defaults(),
@@ -62,7 +61,6 @@ impl MemProfilerConfig {
 
 /// This defines the interface for caller to start profiling
 pub trait Profiler {
-
     // Perform profiling for duration_secs
     fn profile_for(&self, duration_secs: u64) -> Result<()>;
     // Start profiling
